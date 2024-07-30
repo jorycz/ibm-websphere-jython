@@ -1,6 +1,6 @@
-# Some jython scripts used to manage IBM WebSphere (WAS) - Network Deployment
+# Some jython scripts for IBM WebSphere Network Deployment
 
-Run from <WAS profile>/bin
+Run from WAS profile/bin/
 ```
 ./wsadmin.sh -lang jython -f <script.jy> <params>
 ```

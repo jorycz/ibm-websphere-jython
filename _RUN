@@ -1,5 +1,0 @@
-<WAS profile>/bin:
-
-./wsadmin.sh -lang jython -f <script.jy> <params>
-./wsadmin.sh -lang jython -usejython21 true -f <script.jy> <params>
-
