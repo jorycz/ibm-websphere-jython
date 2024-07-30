@@ -1,4 +1,4 @@
-# Some jython scripts for IBM WebSphere Network Deployment
+# Scripts for IBM WebSphere Network Deployment
 
 Run from WAS profile/bin/
 ```
