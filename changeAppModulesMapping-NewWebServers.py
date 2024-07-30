@@ -1,0 +1,266 @@
+import os
+import re
+import sys
+import java
+
+if len(sys.argv) < 2:
+  print "\nERROR: Not enough params! USAGE: script.jy <nodename> <add|remove|check|deleteOldWeb>\n"
+  os._exit(1)
+else:
+  print "WAS node : " + sys.argv[0]
+  print "ACTION   : " + sys.argv[1]
+
+if re.search("^(?!add|remove|check|deleteOldWeb)", sys.argv[1]):
+  print "\nERROR: WRONG ACTION! USAGE: script.jy <nodename> <add|remove|check|deleteOldWeb>\n"
+  os._exit(1)
+  # sys.exit(1)   # This raise system exception
+
+# -------------------------------------
+serversToFind = 'all'
+# serversToFind = 'server1|server2|...'
+
+actionOnWebSphereNode = sys.argv[0]
+actionWithNewWebServer = sys.argv[1]
+# -------------------------------------
+
+print '----------------'
+print 'Looking for server [ ' + serversToFind + ' ]'
+
+### TOPOLOGY CONFIG - DMGR, WEB nodes and WAS nodes are defined by part of hostname:
+cName = AdminControl.getCell()
+cID = AdminConfig.getid('/Cell:'+cName)
+
+# In case of more Cells....
+# cells = AdminConfig.list('Cell').split()
+# cell = cells[0]
+# cName = AdminConfig.showAttribute(cell, 'name')
+
+print '----------------'
+print ' Cell Name: ' + cName
+print ' Cell ID  : ' + cID
+
+dmgrNode = ''
+
+webNodes = list('')
+webNodesID = list('')
+webNodeSearch = 'web'
+
+wasNodes = list('')
+wasNodesID = list('')
+wasNodeSearch = '^.was'
+
+dmgrNodeSearch = 'dmgr|Dmgr'
+
+print '\n****************** Assigning role to nodes by part of hostname ******************'
+print '\tDMGR: [' + dmgrNodeSearch + ']\tWEB nodes: [' + webNodeSearch + ']\tWAS nodes: [' + wasNodeSearch + ']'
+print '*********************************************************************************\n'
+
+nodes = AdminTask.listNodes()
+for nod in nodes.splitlines():
+  if re.search (dmgrNodeSearch, nod):
+    dmgrNode = nod
+  else:
+    if re.search (wasNodeSearch, nod):
+      wasNodes.append(nod)
+    if re.search (webNodeSearch, nod):
+      webNodes.append(nod)
+####################################################################################
+
+print '--- Topology ---'
+dmgrNodeID = AdminConfig.getid('/Cell:'+cName+'/Node:'+dmgrNode)
+print ' DMGR     : ' + dmgrNode + ' , ID : ' + dmgrNodeID
+for web in webNodes:
+  nodeID = AdminConfig.getid('/Cell:'+cName+'/Node:'+web)
+  webNodesID.append(nodeID)
+  print ' WEB node: ' + web + ' , ID : ' + nodeID
+for was in wasNodes:
+  nodeID = AdminConfig.getid('/Cell:'+cName+'/Node:'+was)
+  wasNodesID.append(nodeID)
+  print ' WAS node: ' + was + ' , ID : ' + nodeID
+print '----------------'
+
+appServers = []
+installedApps = []
+failedMappingApps = list('')
+
+def syncAgain():
+  print 'Syncing ... ...'
+  AdminNodeManagement.syncActiveNodes()
+
+def addWebServer(line):
+  # print 'DEBUG: ' + line
+  splitted = line.split('+')
+  for s in splitted:
+    if re.search(".*vwebapv9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasapv1,server=webwasapv1'
+      splitted.append(newWebLine)
+    if re.search(".*pwebapv9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasapv2,server=webwasapv2'
+      splitted.append(newWebLine)
+    if re.search(".*vwebtest9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwastest1,server=webwastest1'
+      splitted.append(newWebLine)
+    if re.search(".*pwebtest9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwastest2,server=webwastest2'
+      splitted.append(newWebLine)
+    if re.search(".*vwebprod9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod1,server=webwasprod1+WebSphere:cell='+cName+',node=webwasprod3,server=webwasprod3'
+      splitted.append(newWebLine)
+    if re.search(".*pwebprod9.*", s):
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod2,server=webwasprod2+WebSphere:cell='+cName+',node=webwasprod4,server=webwasprod4'
+      splitted.append(newWebLine)
+  joined = "+".join(splitted)
+  # print 'DEBUG: ' + joined
+  return joined
+
+def removeWebServer(line):
+  # print 'DEBUG: ' + line
+  splitted = line.split('+')
+  for s in splitted:
+    if re.search(".*webwas.*", s):
+      splitted.remove(s)
+  joined = "+".join(splitted)
+  # print 'DEBUG: ' + joined
+  return joined
+
+def deleteOldWebServer(line):
+  # print 'DEBUG: ' + line
+  splitted = line.split('+')
+  for s in splitted:
+    if re.search(".*[pv]web.*", s):
+      splitted.remove(s)
+  joined = "+".join(splitted)
+  # print 'DEBUG: ' + joined
+  return joined
+
+def checkWebServer(line, moduleName, appName):
+  # print 'DEBUG: ' + line
+  if re.search(".*webwas.*", line):
+    splitted = line.split('+')
+    for s in splitted:
+      if re.search(".*webwas.*", s):
+        print '       o OK - NEW WEB server FOUND: [ ' + s + ' ]'
+  else:
+    print '       ! FAILED - NEW WEB server NOT FOUND on module: [ ' + moduleName + ' ] !'
+    report = appName + ' : ' + moduleName + ' : ' + line
+    failedMappingApps.append(report)
+  # print 'DEBUG: ' + joined
+  return ""
+
+
+def procesModulesMappedServersForApplication(app):
+  if "add" in actionWithNewWebServer:
+    print "   ---> ADDING new WEB servers"
+  if "remove" in actionWithNewWebServer:
+    print "   ---> REMOVING new WEB servers"
+  if "check" in actionWithNewWebServer:
+    print "   ---> CHECKING new WEB servers"
+  if "deleteOldWeb" in actionWithNewWebServer:
+    print "   ---> DELETING old WEB servers"
+  appAllModulesList = list('')
+  appMapModulesData = AdminApp.view(app,'-MapModulesToServers')
+  for splitByModule in appMapModulesData.split('Module:'):
+    for modulesMultilines in splitByModule.splitlines():
+      if modulesMultilines:
+        if re.search("^(?!URI|Server).*", modulesMultilines.strip()):
+          appModuleNameKey = modulesMultilines.strip()
+        if re.search("^URI:.*", modulesMultilines.strip()):
+          appModuleURI = modulesMultilines.strip().split('URI:')[1].strip()
+        if re.search("^Server:.*", modulesMultilines.strip()):
+          currentServers = modulesMultilines.strip().split('Server:')[1].strip()
+          if "add" in actionWithNewWebServer:
+            localLine = addWebServer(currentServers)
+          if "remove" in actionWithNewWebServer:
+            localLine = removeWebServer(currentServers)
+          if "check" in actionWithNewWebServer:
+            localLine = checkWebServer(currentServers, appModuleNameKey, app)
+          if "deleteOldWeb" in actionWithNewWebServer:
+            localLine = deleteOldWebServer(currentServers)
+          appModuleServers = localLine
+          if len(localLine) > 0:
+            print '  ------ Final Mapping: ' + localLine
+    # print 'oooooooooooooooo DEBUG: END of ONE module DATA section for APP oooooooooooooooooooooooo'
+    if 'appModuleNameKey' in locals() and 'appModuleURI' in locals() and 'appModuleServers' in locals():
+      if appModuleNameKey and appModuleURI and appModuleServers:
+        oneMaping = [str(appModuleNameKey),str(appModuleURI),str(appModuleServers)]
+        appAllModulesList.append(oneMaping)
+        
+  if "check" in actionWithNewWebServer:
+    return ""
+  if appAllModulesList:
+    mapModuleComand = list('')
+    mapModuleComand.append("-MapModulesToServers")
+    mapModuleComand.append(appAllModulesList)
+    return mapModuleComand
+
+# =====================================================================================
+
+for nName in wasNodes:
+  # Ignore other nodes:
+  if re.search("^(?!"+actionOnWebSphereNode+")", nName):
+    continue
+    
+  print ' ========================================== '
+  print ' ====== NODE SUMMARY [ '+nName+' ] ======'
+  print ' ========================================== '
+  node = AdminConfig.getid('/Node:' + nName )
+  
+  servers = AdminConfig.list('ServerEntry', node).split()
+
+  for server in servers:
+    appServers.append(server)
+    sName = AdminConfig.showAttribute(server, "serverName")
+    serverID = AdminConfig.getid('/Node:' + nName + '/Server:' + sName + '/')
+    # DEBUG Just to ignore other JVM servers - test on this one:
+    # if re.search("^(?!server1)", sName):
+    #  continue
+      
+    if (re.search("(^" + serversToFind + "$)", sName) or serversToFind == 'all'):
+      print ''
+      # print ' ---> FOUND SERVER : [ ' + sName + ' ] <--- '
+      installedApps = AdminApp.list('WebSphere:cell=' + cName + ',node=' + nName + ',server=' + sName + '').splitlines()
+      
+      for installedApp in installedApps:
+        print "\n"
+        print '  ---> Processing modules maping for application : ' + installedApp
+        mapCommand = procesModulesMappedServersForApplication(installedApp)
+        # print '\n'
+        # print '*************************** DEBUG **************************************'
+        # print mapCommand
+        # print '************************************************************************'
+        # print '\n'
+        print ''
+        if mapCommand:
+          AdminApp.edit(installedApp, mapCommand)
+    
+    # failedMappingApps
+        
+print ''
+
+
+if "check" in actionWithNewWebServer:
+  if failedMappingApps:
+    for m in failedMappingApps:
+      print 'FAILED MAPPING --- ' + m
+  print 'Done.'
+  os._exit(0)
+
+
+### RESET or SAVE & SYNC ###
+
+print 'Reset ...'
+AdminConfig.reset()
+
+#print 'Saving ...'
+#AdminConfig.save()
+#print 'Syncing ...'
+#try:
+#  AdminNodeManagement.syncActiveNodes()
+#except java.net.SocketTimeoutException as e:
+#  print("Socket Timeout Exception occurred:", e)
+#  syncAgain()
+#except Exception as e:
+#  print("Exception occurred:", e)
+
+print 'Done.'
+
