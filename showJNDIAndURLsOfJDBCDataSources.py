@@ -3,7 +3,7 @@ import os
 import sys
 
 if len(sys.argv) < 1:
-  print "\nUSAGE: script.jy <server1|server2|...> OR <all> to show JNDI URLs on all JVM servers. (<onlyURLs>)\n"
+  print "\nUSAGE: script.jy <server1|server2|...|all> (<onlyURLs>) to show JNDI URLs on all JDBC Data Sources.\n"
   os._exit(1)
 
 def arg(index):
