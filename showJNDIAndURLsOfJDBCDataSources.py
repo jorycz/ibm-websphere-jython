@@ -98,11 +98,11 @@ for nName in wasNodes:
   for server in servers:
     appServers.append(server)
     sName = AdminConfig.showAttribute(server, "serverName")
-    if arg(1) != 'onlyURLs':
-      print '\n====== SERVER [' + sName + ']\n'
     serverID = AdminConfig.getid('/Node:' + nName + '/Server:' + sName + '/')
 
     if (re.search("(^" + serversToFind + "$)", sName) or serversToFind == 'all'):
+      if arg(1) != 'onlyURLs':
+        print '\n====== SERVER [' + sName + ']\n'
       dataSources = AdminTask.listDatasources('[-scope Cell='+cName+',Node='+nName+',Server='+sName+']').splitlines()
       for d in dataSources:
         n = AdminConfig.showAttribute(d, 'name')
