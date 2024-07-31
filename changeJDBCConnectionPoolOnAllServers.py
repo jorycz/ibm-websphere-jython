@@ -1,5 +1,6 @@
-import os
 import re
+import os
+import sys
 
 if len(sys.argv) < 1:
   print "\nUSAGE: script.jy <server1|server2|...> OR <all> to setup JDBC max alive on all JVM servers.\n"
