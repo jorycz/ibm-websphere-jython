@@ -14,19 +14,6 @@ def arg(index):
     else:
         return sys.argv[index]
 
-def question_y_n(quest,a1,a0):
-  c1 = [a1,str((a1)[0])]
-  c0 = [a0,str((a0)[0])]
-  while 1:
-    print quest+"\n",
-    test = raw_input()
-    if test in c1:
-      return "1"
-    elif test in c0:
-      return "0"
-    else:
-      print "Please respond with "+a1+" or "+a0+":\n"
-
 ### TOPOLOGY CONFIG - DMGR, WEB nodes and WAS nodes are defined by part of hostname:
 cName = AdminControl.getCell()
 cID = AdminConfig.getid('/Cell:'+cName)
@@ -58,12 +45,13 @@ print '*************************************************************************
 
 if len(arg(0)) < 1:
   print 'You can run this script with any argument to bypass this question.\n'
-  q = question_y_n("Do you want to continue?\nyes/no", "yes", "no")
-  if q == '1':
-    print '\n'
-  if q == '0':
-    print 'Exitting ...\n'
-    os._exit(0)
+  answer = str(raw_input('Do you want to continue? [y/n] : '))
+  if answer:
+    if re.search('^(y|Y)',answer):
+      print '\n'
+    else:
+      print 'Exitting ...\n'
+      os._exit(0)
 
 nodes = AdminTask.listNodes()
 for nod in nodes.splitlines():

@@ -19,19 +19,6 @@ else:
 serverSearchPart = ''
 nodeSearchPart = ''
 
-def question_y_n(quest,a1,a0):
-  c1 = [a1,str((a1)[0])]
-  c0 = [a0,str((a0)[0])]
-  while 1:
-    print quest+"\n",
-    test = raw_input()
-    if test in c1:
-      return "1"
-    elif test in c0:
-      return "0"
-    else:
-      print "Please respond with "+a1+" or "+a0+":\n"
-
 def arg(index):
     try:
         sys.argv[index]
@@ -76,12 +63,13 @@ query = '*:' + serverSearchPart + nodeSearchPart + 'type=DataSource,j2eeType=JDB
 print 'QUERY for JDBC pool reset : [ ' + query + ' ]\n'
 
 if len(arg(2)) < 1:
-  q = question_y_n("\nDo you want to continue?\nyes/no", "yes", "no")
-  if q == '1':
-    resetJdbcWithQuery(query)
-  if q == '0':
-    print 'Exitting ...\n'
-    os._exit(0)
+  answer = str(raw_input('Do you want to continue? [y/n] : '))
+  if answer:
+    if re.search('^(y|Y)',answer):
+      resetJdbcWithQuery(query)
+    else:
+      print 'Exitting ...\n'
+      os._exit(0)
 else:
   resetJdbcWithQuery(query)
 

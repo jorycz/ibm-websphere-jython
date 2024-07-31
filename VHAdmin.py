@@ -18,19 +18,6 @@ else:
   print "\nCONFIG   : " + sys.argv[0]
   print "\nACTION   : " + sys.argv[1]
 
-def question_y_n(quest,a1,a0):
-  c1 = [a1,str((a1)[0])]
-  c0 = [a0,str((a0)[0])]
-  while 1:
-    print quest+"\n",
-    test = raw_input()
-    if test in c1:
-      return "1"
-    elif test in c0:
-      return "0"
-    else:
-      print "Please respond with "+a1+" or "+a0+":\n"
-
 print "\n"
 
 # CREATE WHOLE VH
@@ -149,14 +136,15 @@ if sys.argv[1] == 'checkAllVirtualHostsAndRemoveOldNodeIPAlias':
 
 if sys.argv[0] == 'DANGER_CONFIG_SAVE_AND_SYNC':
   print "\n\n!!! DANGER DANGER DANGER !!! Saving & Syncing ...\n"
-  quest = question_y_n("\nDo you want to continue and save & sync configuration to all WAS nodes?\nyes/no", "yes", "no")
-  if quest == "1":
-    print "\n!!! SAVING & SYNCING configuration to nodes ...\n"
-    AdminConfig.save()
-    AdminNodeManagement.syncActiveNodes()
-  if quest == "0":
-    print "\n\nCONFIG RESET ... No change to configuration was performed.\n\n"
-    AdminConfig.reset()
+  answer = str(raw_input('Do you want to continue and save & sync configuration to all WAS nodes? [y/n] : '))
+  if answer:
+    if re.search('^(y|Y)',answer):
+      print "\n!!! SAVING & SYNCING configuration to nodes ...\n"
+      AdminConfig.save()
+      AdminNodeManagement.syncActiveNodes()
+    else:
+      print "\n\nCONFIG RESET ... No change to configuration was performed.\n\n"
+      AdminConfig.reset()
 else:
   print "\n\nCONFIG RESET ... No change to configuration was performed.\n\n"
   AdminConfig.reset()

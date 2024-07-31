@@ -18,12 +18,12 @@ coreGroups = AdminConfig.list('CoreGroup', AdminConfig.getid('/Cell:'+cName))
 for cg in coreGroups.splitlines():
   if re.search('DefaultCoreGroup', cg):
     cgName = AdminConfig.showAttribute(cg, 'name')
-    print '==> Core Group: ' + cgName
+    print '==> FOUND Core Group: ' + cgName
     policies = AdminConfig.list('HAManagerPolicy', cg)
     for p in policies.splitlines():
       if re.search(POLICYNAME, p):
         policyName = AdminConfig.showAttribute (p, 'name')
-        print '==> Policy name: ' + policyName
+        print '==> FOUND Policy name: ' + policyName
         print
         currentPreferred = AdminConfig.showAttribute(p, 'preferredServers')
         # print 'CURRENT SERVERS ' + currentPreferred
@@ -56,5 +56,5 @@ for cg in coreGroups.splitlines():
           print 'Done ... \n'
       else:
         policyName = AdminConfig.showAttribute (p, 'name')
-        print 'No policy name [' + POLICYNAME + '] exists, found [' + policyName + '].\n'
+        print 'Found policy name [' +policyName+ '], other than specified [' + POLICYNAME + '] ...'
 
