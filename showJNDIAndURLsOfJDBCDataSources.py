@@ -102,7 +102,14 @@ for nName in wasNodes:
 
     if (re.search("(^" + serversToFind + "$)", sName) or serversToFind == 'all'):
       if arg(1) != 'onlyURLs':
-        print '\n====== SERVER [' + sName + ']\n'
+        print '\n ====== SERVER [' + sName + ']'
+        apps = AdminConfig.showAttribute(server, "deployedApplications").split(';')
+        for app in apps:
+          aName = app.split('/')[0]
+          if re.search("^(?!ibmasyncrsp).*", aName):
+            print ' ============ INSTALLED APP [' + aName + ']'
+        print ''
+
       dataSources = AdminTask.listDatasources('[-scope Cell='+cName+',Node='+nName+',Server='+sName+']').splitlines()
       for d in dataSources:
         n = AdminConfig.showAttribute(d, 'name')
