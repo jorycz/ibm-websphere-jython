@@ -89,8 +89,8 @@ for nName in wasNodes:
   print ' ====== NODE SUMMARY [ '+nName+' ] ======'
   print ' ========================================== '
 
-  node = AdminConfig.getid('/Node:' + nName )
-  servers = AdminConfig.list('ServerEntry', node).split()
+  nodeID = AdminConfig.getid('/Node:' + nName )
+  servers = AdminConfig.list('ServerEntry', nodeID).split()
 
   for server in servers:
     # print 'DEBUG: ' + server
