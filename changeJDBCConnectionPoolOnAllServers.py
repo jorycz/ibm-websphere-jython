@@ -10,8 +10,10 @@ if len(sys.argv) < 1:
 # serversToFind = 'all'
 serversToFind = sys.argv[0]
 
+serversToIgnore = ['server1', 'server2', 'server3']
+
 # Seconds to keep outgoing JDBC connection alive:
-max_alive = "900"
+max_alive = "3600"
 
 # -------------------------------------
 
@@ -116,6 +118,11 @@ for nName in wasNodes:
           print '    connectionTimeout [ ' + ct + ' ] maxConnections [ ' + maxc + ' ] minConnections [ ' + minc + ' ] reapTime [ ' + reap + ' ] unusedTimeout [ ' + unused + ' ] agedTimeout [ ' + aged + ' ] purgePolicy [ ' + purgep + ' ]'
           new_aged = max_alive
           new_purgep = "EntirePool"
+          if sName in serversToIgnore:
+            print ''
+            print ' !!! Ignoring SETUP of [ agedTimeout ] for specified server - [ ' + sName + ' ] - setting DEFAULT value: [ 0 ] !!!'
+            AdminConfig.modify(cpId, [['agedTimeout', 0]])
+            continue
           print '    SETTINGS Params: agedTimeout [ ' + new_aged + ' ] purgePolicy [ ' + new_purgep + ' ]'
           AdminConfig.modify(cpId, [['agedTimeout', new_aged]])
           AdminConfig.modify(cpId, [['purgePolicy', new_purgep]])
@@ -151,6 +158,11 @@ for cluster in cs:
         print '    connectionTimeout [ ' + ct + ' ] maxConnections [ ' + maxc + ' ] minConnections [ ' + minc + ' ] reapTime [ ' + reap + ' ] unusedTimeout [ ' + unused + ' ] agedTimeout [ ' + aged + ' ] purgePolicy [ ' + purgep + ' ]'
         new_aged = max_alive
         new_purgep = "EntirePool"
+        if cName in serversToIgnore:
+          print ''
+          print ' !!! Ignoring SETUP of [ agedTimeout ] for specified cluster - [ ' + cName + ' ] - setting DEFAULT value: [ 0 ] !!!'
+          AdminConfig.modify(cpId, [['agedTimeout', 0]])
+          continue
         print '    SETTINGS Params: agedTimeout [ ' + new_aged + ' ] purgePolicy [ ' + new_purgep + ' ]'
         AdminConfig.modify(cpId, [['agedTimeout', new_aged]])
         AdminConfig.modify(cpId, [['purgePolicy', new_purgep]])
