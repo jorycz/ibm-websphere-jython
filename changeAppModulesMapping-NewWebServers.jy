@@ -104,10 +104,10 @@ def addWebServer(line):
       newWebLine = 'WebSphere:cell='+cName+',node=webwastest2,server=webwastest2'
       splitted.append(newWebLine)
     if re.search(".*vwebprod9.*", s):
-      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod1,server=webwasprod1+WebSphere:cell='+cName+',node=webwasprod3,server=webwasprod3'
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod1,server=webwasprod1+WebSphere:cell='+cName+',node=webwasprod3,server=webwasprod3+WebSphere:cell='+cName+',node=webwasprod5,server=webwasprod5'
       splitted.append(newWebLine)
     if re.search(".*pwebprod9.*", s):
-      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod2,server=webwasprod2+WebSphere:cell='+cName+',node=webwasprod4,server=webwasprod4'
+      newWebLine = 'WebSphere:cell='+cName+',node=webwasprod2,server=webwasprod2+WebSphere:cell='+cName+',node=webwasprod4,server=webwasprod4+WebSphere:cell='+cName+',node=webwasprod6,server=webwasprod6'
       splitted.append(newWebLine)
   joined = "+".join(splitted)
   # print 'DEBUG: ' + joined
